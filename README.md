@@ -1,29 +1,27 @@
-# diagram
+## 1. drawio中如何导入自定义图标库
 
-## Project setup
-```
-yarn install
-```
+![image-20221203125847084](C:\Users\86136\AppData\Roaming\Typora\typora-user-images\image-20221203125847084.png)
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+![image-20221203125132275](C:\Users\86136\AppData\Roaming\Typora\typora-user-images\image-20221203125132275.png)
 
-### Compiles and minifies for production
-```
-yarn build
-```
+![image-20221203205420293](C:\Users\86136\AppData\Roaming\Typora\typora-user-images\image-20221203205420293.png)
 
-### Run your unit tests
-```
-yarn test:unit
-```
+![image-20221203205623334](C:\Users\86136\AppData\Roaming\Typora\typora-user-images\image-20221203205623334.png)
 
-### Lints and fixes files
-```
-yarn lint
-```
+![image-20221203205638986](C:\Users\86136\AppData\Roaming\Typora\typora-user-images\image-20221203205638986.png)
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+![image-20221203211206581](C:\Users\86136\AppData\Roaming\Typora\typora-user-images\image-20221203211206581.png)
+
+![image-20221203211506744](C:\Users\86136\AppData\Roaming\Typora\typora-user-images\image-20221203211506744.png)
+
+## 2. mxgraph 画布大小
+
+- `mxGraph.prototype.getMaximumGraphBounds` 返回所有图形应放置的区域
+
+  ```js
+   mxGraph.prototype.getMaximumGraphBounds = () => {
+   	return new mxRectangle(0, 0, this.width, this.height);
+   };
+  ```
+
+  
