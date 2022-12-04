@@ -153,6 +153,7 @@ Format.prototype.clear = function()
  */
 Format.prototype.refresh = function()
 {
+	console.log("here")
 	if (this.pendingRefresh != null)
 	{
 		window.clearTimeout(this.pendingRefresh);

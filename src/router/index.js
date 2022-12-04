@@ -3,6 +3,7 @@ import DiagramCanvas from "../views/DiagramCanvas.vue";
 import HellowWord from "../views/HellowWord.vue";
 import ToolbarView from "../views/ToolbarView.vue";
 import ShapeSidebarView from "../views/ShapeSidebarView.vue";
+import FormatSidebarView from "../views/FormatSidebarView.vue";
 const routes = [
   {
     path: "/",
@@ -19,6 +20,10 @@ const routes = [
   {
     path: "/shape-sidebar",
     component: ShapeSidebarView,
+  },
+  {
+    path: "/format-sidebar",
+    component: FormatSidebarView,
   },
 ];
 

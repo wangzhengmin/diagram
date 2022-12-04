@@ -26,6 +26,7 @@ export default {
         { title: "mxgraph画布", path: "/" },
         { title: "工具栏", path: "/toolbar" },
         { title: "图形侧边栏", path: "/shape-sidebar" },
+        { title: "样式格式侧边栏", path: "/format-sidebar" },
       ],
     };
   },

@@ -18,3 +18,32 @@
 .w-sprite-redo {
   background-position: 0 -644px;
 }
+.w-sprite-bold {
+  background-position: 0 -46px;
+}
+.w-sprite-italic {
+  background-position: 0 -460px;
+}
+
+.w-sprite-underline {
+  background-position: 0 -874px;
+}
+.w-sprite-left {
+  background-position: 0 -505px;
+}
+.w-sprite-center {
+  background-position: 0 -138px;
+}
+.w-sprite-right {
+  background-position: 0 -689px;
+}
+
+.w-sprite-top {
+  background-position: 0 -828px;
+}
+.w-sprite-middle {
+  background-position: 0 -552px;
+}
+.w-sprite-bottom {
+  background-position: 0 -92px;
+}
