@@ -25,6 +25,7 @@ export default {
         { title: "hello word", path: "/hello-word" },
         { title: "mxgraph画布", path: "/" },
         { title: "工具栏", path: "/toolbar" },
+        { title: "图形侧边栏", path: "/shape-sidebar" },
       ],
     };
   },
