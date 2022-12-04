@@ -1,32 +1,39 @@
 <template>
   <div>
     <p>cell 样式</p>
-    <button class="w-button" @click="toggleFontStyle(mxConstants.FONT_BOLD)">
-      <a
-        class="w-sprite w-sprite-bold"
-        :class="{
-          'w-format_active': fontFormat.includes(mxConstants.FONT_BOLD),
-        }"
-      ></a>
-    </button>
-    <button class="w-button" @click="toggleFontStyle(mxConstants.FONT_ITALIC)">
-      <a
-        class="w-sprite w-sprite-italic"
-        :class="{
-          'w-format_active': fontFormat.includes(mxConstants.FONT_ITALIC),
-        }"
-      ></a>
+    <button
+      class="w-button"
+      :class="{
+        'w-format_active': fontFormat.includes(mxConstants.FONT_BOLD),
+      }"
+      @click="toggleFontStyleWrapper(mxConstants.FONT_BOLD)"
+    >
+      <a class="w-sprite w-sprite-bold"></a>
     </button>
     <button
       class="w-button"
-      @click="toggleFontStyle(mxConstants.FONT_UNDERLINE)"
+      :class="{
+        'w-format_active': fontFormat.includes(mxConstants.FONT_ITALIC),
+      }"
+      @click="toggleFontStyleWrapper(mxConstants.FONT_ITALIC)"
     >
-      <a
-        class="w-sprite w-sprite-underline"
-        :class="{
-          'w-format_active': fontFormat.includes(mxConstants.FONT_UNDERLINE),
-        }"
-      ></a>
+      <a class="w-sprite w-sprite-italic"></a>
+    </button>
+    <button
+      class="w-button"
+      :class="{
+        'w-format_active': fontFormat.includes(mxConstants.FONT_UNDERLINE),
+      }"
+      @click="toggleFontStyleWrapper(mxConstants.FONT_UNDERLINE)"
+    >
+      <a class="w-sprite w-sprite-underline"></a>
+    </button>
+    <button
+      class="w-button"
+      @click="textLeft"
+      :class="{ 'w-format_active': textAlign === 'left' }"
+    >
+      <a class="w-sprite w-sprite-left"></a>
     </button>
     <button
       class="w-button"
@@ -42,9 +49,7 @@
     >
       <a class="w-sprite w-sprite-right"></a>
     </button>
-    <button class="w-button">
-      <a class="w-sprite w-sprite-top"></a>
-    </button>
+
     <button
       class="w-button"
       :class="{ 'w-format_active': lineAlign === 'top' }"
@@ -72,7 +77,7 @@ export default {
 </script>
 <script setup>
 import mxgraph, { getGraph } from "@/mxgraph";
-import { createStyleChangeFunction } from "@/mxgraph/editor";
+import { setStyles } from "@/mxgraph/editor";
 import { onMounted, reactive, ref } from "vue";
 import { toggleFontStyle } from "@/mxgraph/actions";
 
@@ -82,31 +87,53 @@ const textAlign = ref("");
 const lineAlign = ref("");
 const fontFormat = reactive([]);
 
-const textLfet = createStyleChangeFunction(
-  [mxConstants.STYLE_ALIGN],
-  [mxConstants.ALIGN_LEFT]
-);
-const textCenter = createStyleChangeFunction(
-  [mxConstants.STYLE_ALIGN],
-  [mxConstants.ALIGN_CENTER]
-);
-const textRight = createStyleChangeFunction(
-  [mxConstants.STYLE_ALIGN],
-  [mxConstants.ALIGN_RIGHT]
-);
+const textLeft = () => {
+  if (textAlign.value !== "left") {
+    textAlign.value = "left";
+    setStyles([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_LEFT]);
+  }
+};
+const textCenter = () => {
+  if (textAlign.value !== "center") {
+    textAlign.value = "center";
+    setStyles([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_CENTER]);
+  }
+};
+const textRight = () => {
+  if (textAlign.value !== "right") {
+    textAlign.value = "right";
+    setStyles([mxConstants.STYLE_ALIGN], [mxConstants.ALIGN_RIGHT]);
+  }
+};
 
-const textTop = createStyleChangeFunction(
-  [mxConstants.STYLE_VERTICAL_ALIGN],
-  [mxConstants.ALIGN_TOP]
-);
-const textBottom = createStyleChangeFunction(
-  [mxConstants.STYLE_VERTICAL_ALIGN],
-  [mxConstants.ALIGN_BOTTOM]
-);
-const textMiddle = createStyleChangeFunction(
-  [mxConstants.STYLE_VERTICAL_ALIGN],
-  [mxConstants.ALIGN_MIDDLE]
-);
+const textTop = () => {
+  if (lineAlign.value !== "top") {
+    lineAlign.value = "top";
+    setStyles([mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_TOP]);
+  }
+};
+const textBottom = () => {
+  if (lineAlign.value !== "bottom") {
+    lineAlign.value = "bottom";
+    setStyles([mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_BOTTOM]);
+  }
+};
+const textMiddle = () => {
+  if (lineAlign.value !== "middle") {
+    lineAlign.value = "middle";
+    setStyles([mxConstants.STYLE_VERTICAL_ALIGN], [mxConstants.ALIGN_MIDDLE]);
+  }
+};
+
+const toggleFontStyleWrapper = (value) => {
+  const index = fontFormat.indexOf(value);
+  if (index > -1) {
+    fontFormat.splice(index, 1);
+  } else {
+    fontFormat.push(value);
+  }
+  toggleFontStyle(value);
+};
 
 onMounted(() => {
   const graph = getGraph();
@@ -114,18 +141,11 @@ onMounted(() => {
     const cells = graph.getSelectionCells();
     const cell = cells[0];
     if (cell) {
+      const state = graph.view.getState(cell);
+      const style = state.style;
       // 设置字体样式 粗体、斜体、下划线
-      const fontStyle = mxUtils.getValue(
-        cell.style,
-        mxConstants.STYLE_FONTSTYLE,
-        0
-      );
-      console.log(
-        fontStyle,
-        fontStyle & mxConstants.FONT_BOLD,
-        fontStyle & mxConstants.FONT_ITALIC,
-        fontStyle & mxConstants.FONT_UNDERLINE
-      );
+      const fontStyle = mxUtils.getValue(style, mxConstants.STYLE_FONTSTYLE, 0);
+      fontFormat.length = 0;
       if ((fontStyle & mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD) {
         fontFormat.push(mxConstants.FONT_BOLD);
       }
@@ -141,7 +161,7 @@ onMounted(() => {
 
       // 设置对齐方式
       const align = mxUtils.getValue(
-        cell.style,
+        style,
         mxConstants.STYLE_ALIGN,
         mxConstants.ALIGN_CENTER
       );
@@ -149,7 +169,7 @@ onMounted(() => {
 
       // 位置 上 中 下
       const valign = mxUtils.getValue(
-        cell.style,
+        style,
         mxConstants.STYLE_VERTICAL_ALIGN,
         mxConstants.ALIGN_MIDDLE
       );

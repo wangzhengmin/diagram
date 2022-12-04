@@ -20,3 +20,19 @@ export const createStyleChangeFunction = function (keys, values) {
     }
   });
 };
+
+export const setStyles = function (keys, values) {
+  var graph = getGraph();
+  graph.stopEditing(false);
+
+  graph.getModel().beginUpdate();
+  try {
+    var cells = graph.getSelectionCells();
+
+    for (var i = 0; i < keys.length; i++) {
+      graph.setCellStyles(keys[i], values[i], cells);
+    }
+  } finally {
+    graph.getModel().endUpdate();
+  }
+};
