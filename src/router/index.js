@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import DiagramCanvas from "../views/DiagramCanvas.vue";
 import HellowWord from "../views/HellowWord.vue";
+import ToolbarView from "../views/ToolbarView.vue";
 const routes = [
   {
     path: "/",
@@ -9,6 +10,10 @@ const routes = [
   {
     path: "/hello-word",
     component: HellowWord,
+  },
+  {
+    path: "/toolbar",
+    component: ToolbarView,
   },
 ];
 

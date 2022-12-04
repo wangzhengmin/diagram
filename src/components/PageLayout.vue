@@ -24,6 +24,7 @@ export default {
       navs: [
         { title: "hello word", path: "/hello-word" },
         { title: "mxgraph画布", path: "/" },
+        { title: "工具栏", path: "/toolbar" },
       ],
     };
   },
@@ -48,6 +49,7 @@ export default {
     }
   }
   .w-body {
+    flex: 1 1;
     padding: 20px;
   }
 }

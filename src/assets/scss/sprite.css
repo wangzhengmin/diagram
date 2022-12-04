@@ -1,0 +1,20 @@
+.w-sprite {
+  cursor: pointer;
+  display: inline-block;
+  background-image: url("../images/icon.png");
+  width: 21px;
+  height: 21px;
+}
+
+.w-sprite-zoomin {
+  background-position: 0 -966px;
+}
+.w-sprite-zoomout {
+  background-position: 0 -1012px;
+}
+.w-sprite-undo {
+  background-position: 0 -920px;
+}
+.w-sprite-redo {
+  background-position: 0 -644px;
+}
