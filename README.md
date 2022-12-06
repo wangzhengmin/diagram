@@ -27,3 +27,44 @@
   参考：
   
   https://yejinzhan.gitee.io/2019/04/27/mxGraph%20%E5%85%A5%E9%97%A8%E5%AE%9E%E4%BE%8B%E6%95%99%E7%A8%8B/
+
+## 3. 设置自定义属性
+
+**设置自定义需要将XML节点作为单元格的值。**
+
+```js
+const graph = generateGraph(container);
+const model = graph.getModel();
+const parent = graph.getDefaultParent();
+
+model.beginUpdate();
+try {
+    const cell = graph.insertVertex(parent, null, "设备1", 200, 20, 200, 50);
+    let value = graph.getModel().getValue(cell);
+
+    if (!mxUtils.isNode(value)) {
+        var doc = mxUtils.createXmlDocument();
+        var obj = doc.createElement("object");
+        obj.setAttribute("label", value || "");
+        value = obj;
+    }
+    value.setAttribute("property", "自定义属性");
+    const attr = value.getAttribute("name");
+    model.setValue(cell, value);
+} finally {
+    model.endUpdate();
+}
+```
+
+## 4. 使用XML节点作为单元值，值会显示不正确
+
+```js
+graph.getLabel = function (cell) {
+    if (typeof cell.value === "object") {
+        return cell.value.getAttribute("label");
+    } else {
+        return cell.value;
+    }
+};
+```
+

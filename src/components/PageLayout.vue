@@ -28,6 +28,7 @@ export default {
         { title: "图形侧边栏", path: "/shape-sidebar" },
         { title: "样式格式侧边栏", path: "/format-sidebar" },
         { title: "机柜布局", path: "/cabinet" },
+        { title: "自定义属性", path: "/custom-property" },
       ],
     };
   },

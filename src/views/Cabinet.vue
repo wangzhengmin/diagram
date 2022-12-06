@@ -19,7 +19,7 @@ const {
   mxLayoutManager,
   mxRubberband,
   mxKeyHandler,
-  mxStackLayout
+  mxStackLayout,
 } = mxgraph;
 
 function CabinetLayout(graph) {
@@ -38,7 +38,7 @@ CabinetLayout.prototype.execute = function (parent, ...data) {
         let geo = this.graph.getCellGeometry(rows[i]);
         geo = geo.clone();
         geo.x = 0;
-        geo.y =  i * 40;
+        geo.y = i * 40;
         geo.width = pgeo.width;
         geo.height = 30;
         model.setGeometry(rows[i], geo);

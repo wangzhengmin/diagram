@@ -5,6 +5,7 @@ import ToolbarView from "../views/ToolbarView.vue";
 import ShapeSidebarView from "../views/ShapeSidebarView.vue";
 import FormatSidebarView from "../views/FormatSidebarView.vue";
 import Cabinet from "../views/Cabinet.vue";
+import CustomProperty from "../views/CustomProperty.vue";
 const routes = [
   {
     path: "/",
@@ -29,6 +30,10 @@ const routes = [
   {
     path: "/cabinet",
     component: Cabinet,
+  },
+  {
+    path: "/custom-property",
+    component: CustomProperty,
   },
 ];
 
