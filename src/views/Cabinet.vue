@@ -20,6 +20,7 @@ const {
   mxRubberband,
   mxKeyHandler,
   mxStackLayout,
+  mxEvent,
 } = mxgraph;
 
 function CabinetLayout(graph) {
@@ -34,6 +35,7 @@ CabinetLayout.prototype.execute = function (parent, ...data) {
     try {
       var rows = model.getChildCells(parent, true);
       const pgeo = this.graph.getCellGeometry(parent);
+      console.log(pgeo.width);
       for (let i = 0; i < rows.length; i++) {
         let geo = this.graph.getCellGeometry(rows[i]);
         geo = geo.clone();
@@ -94,8 +96,24 @@ const render = (container) => {
     var graph = generateGraph(container);
     graph.dropEnabled = true; // 是否可以拖拽图形到其它图形里
 
-    graph.isValidDropTarget = (target, cells) => {
-      return true;
+    graph.isValidDropTarget = (target, cells,evt) => {
+      const pgeo = target.geometry;
+      const cgeo = cells[0].geometry;
+      if (pgeo && cgeo) {
+        console.log(cgeo,evt)
+        const { x, y, width, height } = pgeo;
+        const centerX = cgeo.x + cgeo.width / 2;
+        const centerY = cgeo.y + cgeo.height / 2;
+        if (
+          centerX > x &&
+          centerX < x + width &&
+          centerY > y &&
+          centerY < y + height
+        ) {
+          return true;
+        }
+      }
+      return false;
     };
 
     graph.getMaximumGraphBounds = () => {
@@ -108,16 +126,25 @@ const render = (container) => {
     graph.isPool = function (cell) {
       return cell.value && cell.value.indexOf("机柜") > -1;
     };
+
+    // graph.addListener(mxEvent.CELLS_ADDED, function (sender, evt) {
+    //   var cells = evt.getProperty("cells");
+    //   var parent = evt.getProperty("parent");
+    //   console.log("CELLS_ADDED", cells, parent);
+    // });
     layoutMgr.getLayout = function (cell, eventName) {
       if (
         !model.isEdge(cell) &&
         graph.getModel().getChildCount(cell) > 0 &&
         graph.isPool(cell)
       ) {
-        console.log("layout");
         return layout;
       }
       return null;
+    };
+
+    graph.resizeCell = function (cell) {
+      console.log(cell);
     };
     var rubberband = new mxRubberband(graph);
     var keyHandler = new mxKeyHandler(graph);
