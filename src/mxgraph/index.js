@@ -53,6 +53,7 @@ export const generateGraph = (container) => {
   graph = new mxGraph(container);
   const undoManager = createUndoManager(graph);
   graph.undoManager = undoManager;
+  graph.container = container;
   return graph;
 };
 
