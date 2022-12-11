@@ -101,21 +101,97 @@ new mxRubberband(graph);
 
 - [mxEvent.CELLS_ADDED](http://192.168.43.82:8081/docs/js-api/files/view/mxGraph-js.html#mxGraph.mxEvent.CELLS_ADDED) cell 添加到父级后触发的事件
 
-  
 
-  
+```js
+graph = {
+	view: { // mxGraphView
+	
+	}
+}
+```
 
-  <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                      <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
-                          <path d="M 0 10 L 50 10 M 10 0 L 10 50 M 0 20 L 50 20 M 20 0 L 20 50 M 0 30 L 50 30 M 30 0 L 30 50 M 0 40 L 50 40 M 40 0 L 40 50" fill="none" stroke="#acacac" opacity="0.2" stroke-width="1"/>
-                          <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#acacac" stroke-width="1"/>
-                      </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)"/>
-              </svg>
 
-<svg width="50" height="50" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 0 10 L 50 10 M 10 0 L 10 50 M 0 20 L 50 20 M 20 0 L 20 50 M 0 30 L 50 30 M 30 0 L 30 50 M 0 40 L 50 40 M 40 0 L 40 50" fill="none" stroke="#ffffff" opacity="0.2" stroke-width="1"/><path d="M 50 0 L 0 0 0 50" fill="none" stroke="#ffffff" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid)"/></svg>
+
+## grapheditor 分析
+
+### 初始化
+
+```js
+// 初始化
+new EditorUi(new Editor(urlParams['chrome'] == '0', themes));
+```
+
+### Editor
+
+```js
+// 加载graph
+this.graph = graph || this.createGraph(themes, model);
+
+// 监听图形变化
+this.graph.getModel().addListener(mxEvent.CHANGE, mxUtils.bind(this, function()
+{
+    this.setModified(true);
+}));
+
+// 自动保存
+Editor.prototype.setAutosave = function(value)
+{
+	this.autosave = value;
+	this.fireEvent(new mxEventObject('autosaveChanged'));
+};
+
+// 重置graph
+Editor.prototype.resetGraph = function()
+{
+	this.graph.gridEnabled = !this.isChromelessView() || urlParams['grid'] == '1';
+	this.graph.graphHandler.guidesEnabled = true;
+	this.graph.setTooltips(true);
+	this.graph.setConnectable(true);
+	this.graph.foldingEnabled = true;
+	this.graph.scrollbars = this.graph.defaultScrollbars;
+	this.graph.pageVisible = this.graph.defaultPageVisible;
+	this.graph.pageBreaksVisible = this.graph.pageVisible; 
+	this.graph.preferPageSize = this.graph.pageBreaksVisible;
+	this.graph.background = null;
+	this.graph.pageScale = mxGraph.prototype.pageScale;
+	this.graph.pageFormat = mxGraph.prototype.pageFormat;
+	this.graph.currentScale = 1;
+	this.graph.currentTranslate.x = 0;
+	this.graph.currentTranslate.y = 0;
+	this.updateGraphComponents();
+	this.graph.view.setScale(1);
+};
+```
+
+### EditorUi
+
+```js
+this.initialDefaultVertexStyle = mxUtils.clone(graph.defaultVertexStyle);
+this.initialDefaultEdgeStyle = mxUtils.clone(graph.defaultEdgeStyle);
+
+// 更快的滚动轮缩放可能与CSS转换
+if (graph.useCssTransforms)
+{
+    this.lazyZoomDelay = 0;
+}
+
+// 在无铬模式下禁用图形和强制平移
+if (this.editor.chromeless && !this.editor.editable)
+{
+    this.footerHeight = 0;
+    graph.isEnabled = function() { return false; };
+    graph.panningHandler.isForcePanningEvent = function(me)
+    {
+        return !mxEvent.isPopupTrigger(me.getEvent());
+    };
+}
+
+this.actions = new Actions(this);
+// 顶部菜单栏
+this.menus = this.createMenus();
+```
+
+
 
 <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
                 <defs>
