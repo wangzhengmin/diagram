@@ -55,7 +55,8 @@ const createShapeSvg = function (width, height) {
   graph.view.scaleAndTranslate(1, 0, 0);
   graph.addCells(cells);
   var bounds = graph.getGraphBounds();
-
+  bounds.x = -0.5;
+  bounds.y = -0.5;
   var s =
     Math.floor(Math.min(width / bounds.width, height / bounds.height) * 100) /
     100;
@@ -67,7 +68,8 @@ const createShapeSvg = function (width, height) {
 
   var node = null;
   node = graph.view.getCanvas().ownerSVGElement.cloneNode(true);
-  graph.getModel().clear();
+  console.log(node)
+  // graph.getModel().clear();
 
   node.style.overflow = "hidden";
   node.style.width = width + "px";

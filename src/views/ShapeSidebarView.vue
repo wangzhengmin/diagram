@@ -1,21 +1,21 @@
 <template>
   <div class="w-shape-sidebar-view">
     <ShapeSidebarVue :shapes="shapes" />
-    <div id="graphContainer"></div>
+    <GraphCanvas @load="loadShapes" />
   </div>
 </template>
 
 <script setup>
 import ShapeSidebarVue from "@/components/shape-sidebar/ShapeSidebar.vue";
-import { generateGraph } from "@/mxgraph";
 import { onMounted, shallowRef } from "vue";
 import createBasicShapes from "@/mxgraph/shapes/baseShape.js";
+import GraphCanvas from "../components/graph-canvas/GraphCanvas.vue";
 
 let shapes = shallowRef([]);
-onMounted(() => {
-  var graph = generateGraph(document.getElementById("graphContainer"));
+
+const loadShapes = () => {
   shapes.value = createBasicShapes();
-});
+};
 </script>
 
 <style lang="scss" scoped>
@@ -23,10 +23,5 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-flow: row nowrap;
-}
-#graphContainer {
-  width: 100%;
-  flex: 1 1;
-  background: url("../assets/images/grid.gif");
 }
 </style>

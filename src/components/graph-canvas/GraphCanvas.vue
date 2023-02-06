@@ -3,10 +3,12 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, defineEmits } from "vue";
 import mxgraph, { generateGraph } from "@/mxgraph";
 import { initCanvas } from "./index";
 const { mxEvent, mxRubberband } = mxgraph;
+
+const emit = defineEmits(["load"]);
 
 const render = function () {
   const container = document.getElementById("graphContainer");
@@ -15,11 +17,13 @@ const render = function () {
   const graph = generateGraph(container);
   new mxRubberband(graph);
 
+  emit("load");
   initCanvas();
   graph.setPanning(true);
   graph.view.validate();
   graph.sizeDidChange();
   graph.resetScrollbars();
+
 };
 
 onMounted(() => {
