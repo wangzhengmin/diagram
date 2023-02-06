@@ -73,6 +73,7 @@ function getPageSize() {
 function getPageLayout() {
   var size = this.getPageSize();
   var bounds = this.getGraphBounds();
+
   if (bounds.width == 0 || bounds.height == 0) {
     return new mxRectangle(0, 0, 1, 1);
   } else {
@@ -104,7 +105,6 @@ function getPageLayout() {
  */
 function getGraphBounds() {
   var b = this.graphBounds;
-
   if (this.useCssTransforms) {
     var t = this.currentTranslate;
     var s = this.currentScale;
@@ -116,6 +116,7 @@ function getGraphBounds() {
       b.height * s
     );
   }
+  // console.log("getBounds",b,this.graphBounds,this.useCssTransforms)
   return b;
 }
 

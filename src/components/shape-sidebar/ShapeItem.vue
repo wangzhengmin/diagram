@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import mxgraph, { getGraph } from "@/mxgraph";
+import mxgraph, { getGraph,getTemporaryGraph } from "@/mxgraph";
 import { defineProps, onMounted, ref } from "vue";
 import { toBase64 } from "js-base64";
 
@@ -49,13 +49,12 @@ const createPreview = function () {
 
 // 创建图形svg
 const createShapeSvg = function (width, height) {
-  const graph = getGraph();
+  const graph = getTemporaryGraph();
   const cells = props.cells;
 
   graph.view.scaleAndTranslate(1, 0, 0);
   graph.addCells(cells);
   var bounds = graph.getGraphBounds();
-
   var s =
     Math.floor(Math.min(width / bounds.width, height / bounds.height) * 100) /
     100;
