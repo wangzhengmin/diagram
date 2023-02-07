@@ -1,170 +1,243 @@
 <template>
-  <div>
-    <h1>机柜布局</h1>
-
-    <div id="graphContainer"></div>
+  <div class="w-shape-sidebar-view">
+    <ShapeSidebarVue :shapes="shapes" />
+    <GraphCanvas @load="loadShapes" />
   </div>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
-import mxgraph, { generateGraph, getGraph } from "@/mxgraph";
+import ShapeSidebarVue from "@/components/shape-sidebar/ShapeSidebar.vue";
+import { onMounted, shallowRef } from "vue";
+import GraphCanvas from "../components/graph-canvas/GraphCanvas.vue";
+import mxgraph, { createTemporaryGraph, getGraph } from "@/mxgraph";
+import {
+  initPlaceCabinet,
+  destoryPlaceCabinet,
+  getCabinetNewCoord,
+  cabinet,
+  isCabinet,
+  isPlaceCabinet,
+  isDevice,
+  getNewOffset,
+  initCabinet,
+  getAttributeData,
+  isValidStart,
+} from "@/compositions/cabinet.js";
+import {
+  cellHeight,
+  theadHeight,
+  unitWidth,
+} from "@/mxgraph/shapes/cabinetLayout/config.js";
+import { getDeviceNewCoord } from "@/mxgraph/shapes/cabinetLayout/index.js";
+import {
+  createCabinet,
+  createDevice,
+  createPlaceCabinet,
+} from "../mxgraph/shapes/cabinetLayout";
+import { updateDevcieById, updateCabinetById } from "../compositions/cabinet";
 
 const {
-  mxGraph,
-  mxGraphLayout,
-  mxClient,
+  mxCell,
+  mxGraphHandler,
+  mxGeometry,
   mxUtils,
-  mxRectangle,
+  mxGraph,
+  mxCellEditor,
   mxLayoutManager,
-  mxRubberband,
-  mxKeyHandler,
-  mxStackLayout,
+  mxGraphLayout,
   mxEvent,
 } = mxgraph;
 
-function CabinetLayout(graph) {
-  mxGraphLayout.call(this, graph);
-}
-CabinetLayout.prototype = new mxStackLayout();
-
-CabinetLayout.prototype.execute = function (parent, ...data) {
-  if (parent != null) {
-    var model = this.graph.getModel();
-    model.beginUpdate();
-    try {
-      var rows = model.getChildCells(parent, true);
-      const pgeo = this.graph.getCellGeometry(parent);
-      console.log(pgeo.width);
-      for (let i = 0; i < rows.length; i++) {
-        let geo = this.graph.getCellGeometry(rows[i]);
-        geo = geo.clone();
-        geo.x = 0;
-        geo.y = i * 40;
-        geo.width = pgeo.width;
-        geo.height = 30;
-        model.setGeometry(rows[i], geo);
-      }
-    } finally {
-      model.endUpdate();
-    }
-  }
-};
-CabinetLayout.prototype.moveCell = function (cell, x, y) {
-  console.log("move", cell, x, y);
-};
-
-const cabinetData = [
-  { title: "机柜1", x: 0, y: 0 },
-  { title: "机柜2", x: 1, y: 1 },
-  { title: "机柜3", x: 0, y: 1 },
-];
-
-const initCabinet = () => {
+let shapes = shallowRef([]);
+const initCabinetLayout = () => {
   const graph = getGraph();
-  const parent = graph.getDefaultParent();
-  graph.getModel().beginUpdate();
-  try {
-    for (let cabinet of cabinetData) {
-      const { x, y, title } = cabinet;
-      const cell = graph.insertVertex(
-        parent,
-        null,
-        title,
-        20 + x * 120,
-        20 + y * 320,
-        100,
-        300
-      );
+
+  var graphCellLabelChanged = graph.cellLabelChanged;
+  graph.cellLabelChanged = function (cell, newValue, autoSize) {
+    const cellStyle = this.getCellStyle(cell);
+    const parent = this.model.getParent(cell);
+    const parentStyle = this.getCellStyle(parent);
+    if (isCabinet(cellStyle)) {
+      console.log("机柜属性更改");
+    } else if (isDevice(cellStyle) || isDevice(parentStyle)) {
+      console.log("设备属性更改");
     }
-    graph.insertVertex(parent, null, "设备1", 200, 20, 200, 50);
-    graph.insertVertex(parent, null, "设备2", 200, 90, 200, 50);
-    graph.insertVertex(parent, null, "设备3", 200, 160, 300, 50);
-    // var v1 = graph.insertVertex(parent, null, "Hello,", 20, 20, 80, 30);
-    // var v2 = graph.insertVertex(parent, null, "World!", 200, 150, 80, 30);
-    // graph.insertEdge(parent, null, "", v1, v2);
-  } finally {
-    // Updates the display
-    graph.getModel().endUpdate();
-  }
-};
+    graphCellLabelChanged.apply(this, arguments);
+  };
 
-const render = (container) => {
-  if (!mxClient.isBrowserSupported()) {
-    mxUtils.error("Browser is not supported!", 200, false);
-  } else {
-    var graph = generateGraph(container);
-    graph.dropEnabled = true; // 是否可以拖拽图形到其它图形里
+  graph.isPart = function (cell) {
+    return this.getCurrentCellStyle(cell)["constituent"] == "1";
+  };
 
-    graph.isValidDropTarget = (target, cells,evt) => {
-      const pgeo = target.geometry;
-      const cgeo = cells[0].geometry;
-      if (pgeo && cgeo) {
-        console.log(cgeo,evt)
-        const { x, y, width, height } = pgeo;
-        const centerX = cgeo.x + cgeo.width / 2;
-        const centerY = cgeo.y + cgeo.height / 2;
-        if (
-          centerX > x &&
-          centerX < x + width &&
-          centerY > y &&
-          centerY < y + height
-        ) {
-          return true;
+  graph.selectCellForEvent = function (cell) {
+    if (this.isPart(cell)) {
+      cell = this.model.getParent(cell);
+    }
+
+    mxGraph.prototype.selectCellForEvent.apply(this, [cell]);
+  };
+
+  graph.addMouseListener({
+    mouseDown: mxUtils.bind(graph, function (sender, me) {
+      const cells = this.graphHandler.cells;
+      this.orderCells(false, cells);
+    }),
+    mouseMove: mxUtils.bind(graph, function (sender, me) {
+      const cells = this.graphHandler.cells;
+      if (this.isMouseDown && cells) {
+        const cell = Array.isArray(cells) ? cells[0] : cells;
+        const cellStyle = this.getCellStyle(cell);
+        if (isCabinet(cellStyle) && cabinet.placeList.length === 0) {
+          initPlaceCabinet();
         }
       }
-      return false;
-    };
+    }),
+    mouseUp: function (sender, me) {
+      destoryPlaceCabinet();
+    },
+  });
 
-    graph.getMaximumGraphBounds = () => {
-      return new mxRectangle(0, 0, 8000, 8000);
-    };
-
-    const layout = new CabinetLayout(graph);
-    const layoutMgr = new mxLayoutManager(graph);
-    var model = graph.getModel();
-    graph.isPool = function (cell) {
-      return cell.value && cell.value.indexOf("机柜") > -1;
-    };
-
-    // graph.addListener(mxEvent.CELLS_ADDED, function (sender, evt) {
-    //   var cells = evt.getProperty("cells");
-    //   var parent = evt.getProperty("parent");
-    //   console.log("CELLS_ADDED", cells, parent);
-    // });
-    layoutMgr.getLayout = function (cell, eventName) {
+  graph.isValidDropTarget = function (target, cells, evt) {
+    if (target) {
+      const firstCell = cells[0];
+      const targetStyle = this.getCellStyle(target);
+      const cellStyle = this.getCellStyle(firstCell);
+      // 是否是机柜移动到占位机柜
       if (
-        !model.isEdge(cell) &&
-        graph.getModel().getChildCount(cell) > 0 &&
-        graph.isPool(cell)
+        (isCabinet(cellStyle) && isPlaceCabinet(targetStyle)) ||
+        (isDevice(cellStyle) && isCabinet(targetStyle))
       ) {
-        return layout;
+        return target;
       }
-      return null;
-    };
+    }
+    return null;
+  };
 
-    graph.resizeCell = function (cell) {
-      console.log(cell);
-    };
-    var rubberband = new mxRubberband(graph);
-    var keyHandler = new mxKeyHandler(graph);
-    initCabinet();
-  }
+  const originGraphMoveCells = mxGraph.prototype.moveCells;
+  graph.moveCells = function (cells, dx, dy, clone, target, evt, mapping) {
+    let result = [];
+    const firstCell = cells[0];
+    const cellStyle = this.getCellStyle(firstCell);
+    // 是否是机柜移动到占位机柜
+    const isMoveToPlaceCabinet =
+      target &&
+      isCabinet(cellStyle) &&
+      isPlaceCabinet(this.getCellStyle(target));
+    if (isCabinet(cellStyle)) {
+      if (isMoveToPlaceCabinet) {
+        const placeCabinetGeo = target.geometry;
+        const cabinetGeo = firstCell.geometry;
+        dx = placeCabinetGeo.x - cabinetGeo.x;
+        dy = placeCabinetGeo.y - cabinetGeo.y;
+
+        const placeCabinetValue = this.getModel().getValue(target);
+        const placeCabinetData = getAttributeData(placeCabinetValue);
+        const cabinetValue = this.getModel().getValue(firstCell);
+        const cabinetData = getAttributeData(cabinetValue);
+        updateCabinetById(cabinetData.id, {
+          x: parseInt(placeCabinetData.x, 10),
+          y: parseInt(placeCabinetData.y, 10),
+        });
+
+        target = null;
+      } else {
+        cells = [];
+      }
+    } else if (isDevice(cellStyle)) {
+      let oldParent = graph.model.getParent(firstCell);
+      // 是否是设备移动到机柜
+      const isDeviceMoveToCabinet =
+        target && isDevice(cellStyle) && isCabinet(this.getCellStyle(target));
+      // 是否是机柜内移动设备
+      const isCabinetMoveDevice =
+        isDevice(cellStyle) &&
+        !target &&
+        isCabinet(this.getCellStyle(oldParent));
+
+      const { offsetX, offsetY } = getNewOffset(firstCell, target, dx, dy);
+
+      const childGeo = graph.model.getGeometry(firstCell);
+      const distance = childGeo.y + dy + offsetY - theadHeight;
+
+      const value = this.getModel().getValue(firstCell);
+      const data = getAttributeData(value);
+      const { start, end, id } = data;
+
+      const newStart = Math.round(distance / cellHeight) + 1;
+      const newEnd = newStart + parseInt(end) - parseInt(start);
+      const { y: newY } = getDeviceNewCoord(newStart);
+
+      let cabinetCell;
+      if (isDeviceMoveToCabinet) {
+        cabinetCell = target;
+        dx = -offsetX - childGeo.x + unitWidth;
+        dy = newY - offsetY - childGeo.y;
+      } else if (isCabinetMoveDevice) {
+        cabinetCell = oldParent;
+        dx = -offsetX - childGeo.x + unitWidth;
+        dy = newY - childGeo.y;
+      } else {
+        cells = [];
+      }
+      const cabinetValue = this.getModel().getValue(cabinetCell);
+      const cabinetData = getAttributeData(cabinetValue);
+      const isValid = isValidStart(newStart, newEnd, id, cabinetData.id);
+
+      if (isValid) {
+        updateDevcieById(id, {
+          start: newStart,
+          end: newEnd,
+          cabinetId: cabinetData.id,
+        });
+      } else {
+        cells = [];
+      }
+    }
+    if (cells.length > 0) {
+      result = originGraphMoveCells.apply(this, [
+        cells,
+        dx,
+        dy,
+        clone,
+        target,
+        evt,
+        mapping,
+      ]);
+    }
+    return result;
+  };
 };
 
-onMounted(() => {
-  render(document.getElementById("graphContainer"));
-});
+const loadShapes = () => {
+  const graph = getGraph();
+
+  initCabinet();
+  initCabinetLayout();
+  graph.timerAutoScroll = true;
+  graph.allowAutoPanning = true;
+  graph.setDropEnabled(true);
+  createTemporaryGraph();
+
+  const cabinet = createCabinet();
+  const device = createDevice(
+    null,
+    { weight: 22, power: 33, start: 1, end: 1 },
+    true
+  );
+  const placeCabinet = createPlaceCabinet();
+  shapes.value = [
+    [cabinet],
+    [device],
+    [placeCabinet],
+    [createDevice(null, { weight: 22, power: 33, start: 1, end: 1 }, true)],
+  ];
+};
 </script>
 
 <style lang="scss" scoped>
-#graphContainer {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  height: 600px;
-  background: url("../assets/images/grid.gif");
-  cursor: default;
-  touch-action: none;
+.w-shape-sidebar-view {
+  height: 100%;
+  display: flex;
+  flex-flow: row nowrap;
 }
 </style>

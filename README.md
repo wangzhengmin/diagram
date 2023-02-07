@@ -80,6 +80,19 @@ new mxRubberband(graph);
  graph.setConnectable(true);
 ```
 
+## 7.获取mxCell的style
+
+```js
+graph.getCellStyle(cell)
+```
+
+## 8.优化滚动条
+
+```js
+graph.timerAutoScroll = true;
+graph.allowAutoPanning = true;
+```
+
 ## APi
 
 - `graph.setAllowDanglingEdges(false)` 连线是否两端是否一定要连上
@@ -96,6 +109,16 @@ new mxRubberband(graph);
       'Source Must Have No Incoming Edge',
       null));
   ```
+
+- `graph.isValidDropTarget` 是否是有效的放置目标，如果是会组合在一起
+
+- `graph.moveCells` 移动指定的单元格
+
+- `graph.getCellStyle` 获取指定目标的样式
+
+- `graph.selectCellForEvent` 选中事件，可以使元素的组成部分不可选中
+
+  http://jgraph.github.io/mxgraph/javascript/examples/constituent.html
 
 ## 事件
 

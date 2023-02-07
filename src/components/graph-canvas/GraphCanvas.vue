@@ -14,13 +14,13 @@ const render = function () {
   // 禁用默认菜单
   // mxEvent.disableContextMenu(container);
   const graph = generateGraph(container);
-
-  emit("load");
   initCanvas();
   graph.setPanning(true);
   graph.view.validate();
   graph.sizeDidChange();
   graph.resetScrollbars();
+  // 一定要等画布初始化完 才能加载图形， 即第一次validate 之后才能加载图形
+  emit("load");
 };
 
 onMounted(() => {

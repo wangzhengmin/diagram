@@ -28,11 +28,33 @@ export function initCanvas() {
   graph.view.createSvgGrid = createSvgGrid;
   graph.view.validateBackgroundPage = validateBackgroundPage;
   graph.view.validateBackgroundStyles = validateBackgroundStyles;
+  graph.view.viewStateChanged = viewStateChanged;
   graph.getPagePadding = getPagePadding;
   graph.getPageSize = getPageSize;
   graph.getPageLayout = getPageLayout;
   graph.resetScrollbars = resetScrollbars;
   graph.sizeDidChange = sizeDidChange;
+  graph.pageScale = 1;
+  graph.scrollTileSize = new mxRectangle(0, 0, 400, 400);
+
+  graph.convertValueToString = function (cell) {
+    if (mxUtils.isNode(cell.value)) {
+      return cell.getAttribute("label", "");
+    }
+    return mxGraph.prototype.convertValueToString.apply(this, arguments);
+  };
+
+  var cellLabelChanged = graph.cellLabelChanged;
+  graph.cellLabelChanged = function (cell, newValue, autoSize) {
+    if (mxUtils.isNode(cell.value)) {
+      // Clones the value for correct undo/redo
+      var elt = cell.value.cloneNode(true);
+      elt.setAttribute("label", newValue);
+      newValue = elt;
+    }
+
+    cellLabelChanged.apply(this, [cell, newValue, autoSize]);
+  };
 }
 
 /**
@@ -63,7 +85,6 @@ function getPageSize() {
         this.pageFormat.height * this.pageScale
       )
     : this.scrollTileSize;
-
   return size;
 }
 
@@ -480,5 +501,15 @@ function sizeDidChange() {
     this.fireEvent(
       new mxEventObject(mxEvent.SIZE, "bounds", this.getGraphBounds())
     );
+  }
+}
+
+function viewStateChanged() {
+  if (this.graph.useCssTransforms) {
+    this.validate();
+    this.graph.sizeDidChange();
+  } else {
+    this.revalidate();
+    this.graph.sizeDidChange();
   }
 }

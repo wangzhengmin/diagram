@@ -17,8 +17,17 @@ window.mxDefaultToolbar = mxgraph.mxDefaultToolbar;
 
 mxgraph.mxGraphHandler.prototype.maxLivePreview = 16;
 
-const { mxUtils, mxEvent, mxGraph, mxRectangle, mxRubberband, mxUndoManager } =
-  mxgraph;
+const {
+  mxUtils,
+  mxEvent,
+  mxGraph,
+  mxRectangle,
+  mxGraphView,
+  mxPoint,
+  mxEventObject,
+  mxRubberband,
+  mxUndoManager,
+} = mxgraph;
 
 const createUndoManager = (graph) => {
   var undoMgr = new mxUndoManager();
