@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import mxgraph, { getGraph,getTemporaryGraph } from "@/mxgraph";
+import mxgraph, { getGraph, getTemporaryGraph } from "@/mxgraph";
 import { defineProps, onMounted, ref } from "vue";
 import { toBase64 } from "js-base64";
 
@@ -35,13 +35,14 @@ const createPreview = function () {
   let cells = props.cells;
   let { width = props.width, height = props.height } =
     cells?.[0]?.geometry || {};
-
   var dragElt = document.createElement("div");
   dragElt.style.width = width + "px";
   dragElt.style.height = height + "px";
-
   const svg = createShapeSvg(width, height);
+  console.log(svg);
+  console.log(dragElt);
   const image = createShapeImage(svg);
+  image.style.height = "100%";
   dragElt.appendChild(image);
 
   return dragElt;
