@@ -10,13 +10,15 @@ import ShapeSidebarVue from "@/components/shape-sidebar/ShapeSidebar.vue";
 import { onMounted, shallowRef } from "vue";
 import createBasicShapes from "@/mxgraph/shapes/baseShape.js";
 import GraphCanvas from "../components/graph-canvas/GraphCanvas.vue";
-import mxgraph, { createTemporaryGraph } from "@/mxgraph";
+import mxgraph, { createTemporaryGraph,getGraph } from "@/mxgraph";
 
 const { mxCell, mxGeometry } = mxgraph;
 
 let shapes = shallowRef([]);
 
 const loadShapes = () => {
+  const graph = getGraph();
+  graph.setDropEnabled(true)
   createTemporaryGraph();
   const cabinet = new mxCell(
     "机柜",

@@ -4,10 +4,10 @@
 
 <script setup>
 import mxgraph, { getGraph, getTemporaryGraph } from "@/mxgraph";
-import { defineProps, onMounted, ref } from "vue";
+import { defineProps, onMounted, ref, computed } from "vue";
 import { toBase64 } from "js-base64";
 
-const { mxUtils } = mxgraph;
+const { mxUtils, mxEvent, mxDragSource, mxCell, mxGeometry } = mxgraph;
 const shapeRef = ref();
 
 const props = defineProps({
@@ -39,8 +39,6 @@ const createPreview = function () {
   dragElt.style.width = width + "px";
   dragElt.style.height = height + "px";
   const svg = createShapeSvg(width, height);
-  console.log(svg);
-  console.log(dragElt);
   const image = createShapeImage(svg);
   image.style.height = "100%";
   dragElt.appendChild(image);
@@ -97,6 +95,57 @@ const createHandler = function (graph, evt, target, x, y) {
   }
 };
 
+const cabinetData = ref([]);
+
+const cabinetCoordMap = computed(() => {
+  return cabinetData.value.map((item) => {
+    return `${item.x}-${item.y}`;
+  });
+});
+
+const placeCabinet = ref([]);
+
+const cabinetWidth = 200;
+const cabinetHeight = 500;
+const interval = 50;
+const row = 2;
+const col = 2;
+// 初始化占位机柜
+const initPlaceCabinet = () => {
+  console.log(cabinetCoordMap.value, cabinetData.value);
+  const arr = [];
+  for (let x = 0; x < col; x++) {
+    for (let y = 0; y < row; y++) {
+      if (!cabinetCoordMap.value.includes(`${x}-${y}`)) {
+        var doc = mxUtils.createXmlDocument();
+        var node = doc.createElement("MyNode");
+        node.setAttribute("label", "占位机柜");
+        node.setAttribute("x", x);
+        node.setAttribute("y", y);
+
+        const cell = new mxCell(
+          node,
+          new mxGeometry(
+            x * (cabinetWidth + interval),
+            y * (cabinetHeight + interval),
+            cabinetWidth,
+            cabinetHeight
+          ),
+          "shape=rect;type=placeCabinet"
+        );
+        cell.vertex = true;
+        arr.push(cell);
+      }
+    }
+  }
+  return arr;
+};
+
+// 删除占位机柜
+const removePlaceCabinet = (graph, cells) => {
+  console.log("remove", graph, cells);
+  graph.removeCells(cells, false);
+};
 const initShape = function () {
   const graph = getGraph();
   const dom = shapeRef.value;
@@ -120,6 +169,46 @@ const initShape = function () {
 
   ds.isGuidesEnabled = function () {
     return graph.graphHandler.guidesEnabled;
+  };
+
+  const originMouseMove = mxDragSource.prototype.mouseMove;
+  ds.mouseMove = function (evt) {
+    var graph = this.getGraphForEvent(evt);
+    const currentCell = props.cells[0];
+    const style = graph.getCellStyle(currentCell);
+    if (style.type === "cabinet" && placeCabinet.value.length === 0) {
+      const cells = initPlaceCabinet();
+
+      placeCabinet.value = graph.importCells(cells);
+    }
+    originMouseMove.apply(this, arguments);
+  };
+
+  ds.getDropTarget = function (graph, x, y, evt) {
+    var cell = graph.getCellAt(x, y, null);
+    const style = graph.getCellStyle(cell);
+    if (style.type === "placeCabinet") {
+      return cell;
+    }
+    return null;
+  };
+
+  const originDrop = mxDragSource.prototype.drop;
+  ds.drop = function (graph, evt, dropTarget, x, y) {
+    if (dropTarget) {
+      let value = graph.getModel().getValue(dropTarget);
+      const attrList = value.attributes;
+      const xAxis = value.getAttribute("x");
+      const yAxis = value.getAttribute("y");
+      if (xAxis && yAxis) {
+        x = xAxis * (cabinetWidth + interval);
+        y = yAxis * (cabinetHeight + interval);
+        cabinetData.value.push({ title: "机柜", x: xAxis, y: yAxis });
+        originDrop.apply(this, [graph, evt, null, x, y]);
+      }
+    }
+    removePlaceCabinet(graph, placeCabinet.value);
+    placeCabinet.value = [];
   };
 };
 
