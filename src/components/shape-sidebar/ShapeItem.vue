@@ -6,7 +6,16 @@
 import mxgraph, { getGraph, getTemporaryGraph } from "@/mxgraph";
 import { defineProps, onMounted, ref, computed } from "vue";
 import { toBase64 } from "js-base64";
-
+import {
+  initPlaceCabinet,
+  destoryPlaceCabinet,
+  getCabinetNewCoord,
+  isCabinet,
+  isPlaceCabinet,
+  isDevice,
+  cabinet,
+  deviceUnit,
+} from "@/compositions/cabinet.js";
 const { mxUtils, mxEvent, mxDragSource, mxCell, mxGeometry } = mxgraph;
 const shapeRef = ref();
 
@@ -90,62 +99,10 @@ const createHandler = function (graph, evt, target, x, y) {
   const cells = graph.importCells(props.cells, x, y, target);
 
   if (cells != null && cells.length > 0) {
-    graph.scrollCellToVisible(cells[0]);
     graph.setSelectionCells(cells);
   }
 };
 
-const cabinetData = ref([]);
-
-const cabinetCoordMap = computed(() => {
-  return cabinetData.value.map((item) => {
-    return `${item.x}-${item.y}`;
-  });
-});
-
-const placeCabinet = ref([]);
-
-const cabinetWidth = 200;
-const cabinetHeight = 500;
-const interval = 50;
-const row = 2;
-const col = 2;
-// 初始化占位机柜
-const initPlaceCabinet = () => {
-  console.log(cabinetCoordMap.value, cabinetData.value);
-  const arr = [];
-  for (let x = 0; x < col; x++) {
-    for (let y = 0; y < row; y++) {
-      if (!cabinetCoordMap.value.includes(`${x}-${y}`)) {
-        var doc = mxUtils.createXmlDocument();
-        var node = doc.createElement("MyNode");
-        node.setAttribute("label", "占位机柜");
-        node.setAttribute("x", x);
-        node.setAttribute("y", y);
-
-        const cell = new mxCell(
-          node,
-          new mxGeometry(
-            x * (cabinetWidth + interval),
-            y * (cabinetHeight + interval),
-            cabinetWidth,
-            cabinetHeight
-          ),
-          "shape=rect;type=placeCabinet"
-        );
-        cell.vertex = true;
-        arr.push(cell);
-      }
-    }
-  }
-  return arr;
-};
-
-// 删除占位机柜
-const removePlaceCabinet = (graph, cells) => {
-  console.log("remove", graph, cells);
-  graph.removeCells(cells, false);
-};
 const initShape = function () {
   const graph = getGraph();
   const dom = shapeRef.value;
@@ -176,39 +133,49 @@ const initShape = function () {
     var graph = this.getGraphForEvent(evt);
     const currentCell = props.cells[0];
     const style = graph.getCellStyle(currentCell);
-    if (style.type === "cabinet" && placeCabinet.value.length === 0) {
-      const cells = initPlaceCabinet();
-
-      placeCabinet.value = graph.importCells(cells);
+    if (isCabinet(style) && cabinet.placeList.length === 0) {
+      initPlaceCabinet();
     }
-    originMouseMove.apply(this, arguments);
+    return originMouseMove.apply(this, arguments);
+  };
+  const originMouseUp = mxDragSource.prototype.mouseUp;
+  ds.mouseUp = function () {
+    destoryPlaceCabinet();
+    return originMouseUp.apply(this, arguments);
   };
 
   ds.getDropTarget = function (graph, x, y, evt) {
-    var cell = graph.getCellAt(x, y, null);
-    const style = graph.getCellStyle(cell);
-    if (style.type === "placeCabinet") {
-      return cell;
+    const cellStyle = graph.getCellStyle(props.cells[0]);
+    // 是否是机柜或者设备的放置
+    if (isDevice(cellStyle) || isCabinet(cellStyle)) {
+      var target = graph.getCellAt(x, y, null);
+      if (target) {
+        const targetStyle = graph.getCellStyle(target);
+        if (
+          (isDevice(cellStyle) && isCabinet(targetStyle)) ||
+          (isCabinet(cellStyle) && isPlaceCabinet(targetStyle))
+        ) {
+          return target;
+        }
+      }
     }
     return null;
   };
 
   const originDrop = mxDragSource.prototype.drop;
   ds.drop = function (graph, evt, dropTarget, x, y) {
-    if (dropTarget) {
+    const cellStyle = graph.getCellStyle(props.cells[0]);
+    if (dropTarget && isCabinet(cellStyle)) {
       let value = graph.getModel().getValue(dropTarget);
-      const attrList = value.attributes;
       const xAxis = value.getAttribute("x");
       const yAxis = value.getAttribute("y");
       if (xAxis && yAxis) {
-        x = xAxis * (cabinetWidth + interval);
-        y = yAxis * (cabinetHeight + interval);
-        cabinetData.value.push({ title: "机柜", x: xAxis, y: yAxis });
-        originDrop.apply(this, [graph, evt, null, x, y]);
+        cabinet.list.push({ title: "机柜", x: xAxis, y: yAxis });
+        originDrop.apply(this, arguments);
       }
+    } else {
+      return originDrop.apply(this, arguments);
     }
-    removePlaceCabinet(graph, placeCabinet.value);
-    placeCabinet.value = [];
   };
 };
 
