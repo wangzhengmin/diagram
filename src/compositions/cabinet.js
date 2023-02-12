@@ -1,6 +1,6 @@
 import { reactive, computed } from "vue";
 import mxgraph, { getGraph, getTemporaryGraph } from "@/mxgraph";
-const { mxUtils, mxEvent, mxDragSource, mxCell, mxGeometry } = mxgraph;
+import { createPlaceCabinet } from "@/mxgraph/shapes/cabinetLayout";
 
 export const cabinet = reactive({
   list: [], // 机柜列表
@@ -22,28 +22,6 @@ export const deviceUnit = 50; // 设备高度
 // 初始化渲染机柜
 export function initCabinet() {}
 
-// 创建机柜cell 数据
-export function createCabinetCell(mode, x, y) {
-  var doc = mxUtils.createXmlDocument();
-  var node = doc.createElement("MyNode");
-  node.setAttribute("label", "占位机柜");
-  node.setAttribute("x", x);
-  node.setAttribute("y", y);
-
-  const cell = new mxCell(
-    node,
-    new mxGeometry(
-      x * (cabinetWidth + interval),
-      y * (cabinetHeight + interval),
-      cabinetWidth,
-      cabinetHeight
-    ),
-    `shape=rect;type=${mode}`
-  );
-  cell.vertex = true;
-  return cell;
-}
-
 // 渲染占位机柜
 export function initPlaceCabinet() {
   const graph = getGraph();
@@ -51,7 +29,7 @@ export function initPlaceCabinet() {
   for (let x = 0; x < minX; x++) {
     for (let y = 0; y < minY; y++) {
       if (!cabinetCoordMap.value.includes(`${x}-${y}`)) {
-        const cell = createCabinetCell("placeCabinet", x, y);
+        const cell = createPlaceCabinet({ x, y });
         cells.push(cell);
       }
     }
@@ -78,8 +56,11 @@ export function getCabinetNewCoord(x, y) {
 }
 
 // 是否是机柜
-export const isCabinet = (style) => style.type === "cabinet";
+export const isCabinet = (style) =>
+  style.shape === "mxgraph.cabinetLayout.cabinet";
 // 是否是占位机柜
-export const isPlaceCabinet = (style) => style.type === "placeCabinet";
+export const isPlaceCabinet = (style) =>
+  style.shape === "mxgraph.cabinetLayout.placeCabinet";
 // 是否是设备
-export const isDevice = (style) => style.type === "device";
+export const isDevice = (style) =>
+  style.shape === "mxgraph.cabinetLayout.device";

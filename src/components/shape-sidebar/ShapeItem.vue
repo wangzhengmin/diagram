@@ -50,6 +50,7 @@ const createPreview = function () {
   const svg = createShapeSvg(width, height);
   const image = createShapeImage(svg);
   image.style.height = "100%";
+  image.style.width = "100%";
   dragElt.appendChild(image);
 
   return dragElt;

@@ -8,9 +8,9 @@
 <script setup>
 import ShapeSidebarVue from "@/components/shape-sidebar/ShapeSidebar.vue";
 import { onMounted, shallowRef } from "vue";
-import createBasicShapes from "@/mxgraph/shapes/baseShape.js";
 import GraphCanvas from "../components/graph-canvas/GraphCanvas.vue";
 import mxgraph, { createTemporaryGraph, getGraph } from "@/mxgraph";
+
 import {
   initPlaceCabinet,
   destoryPlaceCabinet,
@@ -22,16 +22,30 @@ import {
   isDevice,
 } from "@/compositions/cabinet.js";
 
-const { mxCell, mxGeometry, mxGraph, mxLayoutManager, mxGraphLayout } = mxgraph;
+import {
+  createCabinet,
+  createDevice,
+  createPlaceCabinet,
+} from "../mxgraph/shapes/cabinetLayout";
+
+const { mxCell, mxGeometry, mxUtils, mxGraph, mxLayoutManager, mxGraphLayout } =
+  mxgraph;
 
 let shapes = shallowRef([]);
 const initCabinetLayout = () => {
   const graph = getGraph();
+  console.log(new mxGraphLayout(graph));
 
   let layoutManager = new mxLayoutManager(graph);
   const cabinetLayout = new mxGraphLayout(graph);
-  layoutManager.getLayout = function () {
-    return cabinetLayout;
+  cabinetLayout.moveCell = function () {
+    console.log("move");
+  };
+  layoutManager.getLayout = function (cell) {
+    if (isCabinet(this.graph.getCellStyle(cell))) {
+      return cabinetLayout;
+    }
+    return;
   };
 
   graph.isValidDropTarget = function (target, cells, evt) {
@@ -102,7 +116,7 @@ const initCabinetLayout = () => {
         const newX = cabinetGeo.x;
         dx = newX - deviceGeo.x;
         dy = newY - deviceGeo.y;
-        console.log(dx,dy)
+        console.log(dx, dy);
         originGraphMoveCells.apply(this, [
           cells,
           dx,
@@ -128,21 +142,11 @@ const loadShapes = () => {
   graph.allowAutoPanning = true;
   graph.setDropEnabled(true);
   createTemporaryGraph();
-  const cabinet = new mxCell(
-    "机柜",
-    new mxGeometry(0, 0, 200, 500),
-    "shape=rect;type=cabinet"
-  );
-  cabinet.vertex = true;
 
-  const device = new mxCell(
-    "设备",
-    new mxGeometry(0, 0, 200, 50),
-    "shape=rect;type=device"
-  );
-  device.vertex = true;
-
-  shapes.value = [[cabinet], [device]];
+  const cabinet = createCabinet();
+  const device = createDevice();
+  const placeCabinet = createPlaceCabinet();
+  shapes.value = [[cabinet], [device], [placeCabinet]];
 };
 </script>
 
