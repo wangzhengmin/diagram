@@ -34,8 +34,10 @@ const {
   mxGeometry,
   mxUtils,
   mxGraph,
+  mxCellEditor,
   mxLayoutManager,
   mxGraphLayout,
+  mxEvent,
 } = mxgraph;
 
 let shapes = shallowRef([]);
@@ -52,6 +54,12 @@ const initCabinetLayout = () => {
       return cabinetLayout;
     }
     return;
+  };
+
+  var graphCellLabelChanged = graph.cellLabelChanged;
+  graph.cellLabelChanged = function (cell, newValue, autoSize) {
+    console.log("change", cell, newValue);
+    graphCellLabelChanged.apply(this, arguments);
   };
 
   graph.isPart = function (cell) {
