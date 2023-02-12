@@ -1,6 +1,6 @@
 import mxgraph from "@/mxgraph";
 import { attrLen, attrUnitWidth, unitWidth, titleWidth } from "./config";
-const { mxShape, mxUtils, mxCellRenderer, mxRectangle } = mxgraph;
+const { mxShape, mxUtils, mxCellRenderer, mxRectangle, mxConstants } = mxgraph;
 
 function mxDevice(bounds, fill, stroke, strokewidth) {
   mxShape.call(this);
@@ -15,8 +15,13 @@ mxUtils.extend(mxDevice, mxShape);
 mxDevice.prototype.unitSize = 20;
 
 mxDevice.prototype.paintVertexShape = function (c, x, y, w, h) {
+  var fillColor = mxUtils.getValue(
+    this.style,
+    mxConstants.STYLE_FILLCOLOR,
+    "#ffffff"
+  );
   c.translate(x, y);
-  c.setFillColor("#ffffff");
+  c.setFillColor(fillColor);
   this.background(c, w, h);
   this.sideGrid(c, w, h);
 };

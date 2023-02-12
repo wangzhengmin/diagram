@@ -14,8 +14,15 @@ import {
   unitWidth,
   attrUnitWidth,
 } from "./config";
-console.log(cabinetWidth, cabinetHeight);
-const { mxUtils, mxCell, mxGeometry } = mxgraph;
+const {
+  mxUtils,
+  mxEvent,
+  mxRectangleShape,
+  mxConstants,
+  mxCellHighlight,
+  mxCell,
+  mxGeometry,
+} = mxgraph;
 
 export function createDevice(data = {}) {
   var doc = mxUtils.createXmlDocument();
@@ -23,7 +30,7 @@ export function createDevice(data = {}) {
   const device = new mxCell(
     node,
     new mxGeometry(0, 0, attrWidth, cellHeight),
-    "shape=mxgraph.cabinetLayout.device;"
+    "shape=mxgraph.cabinetLayout.device;resizable=0;fillColor=#e1d5e7;"
   );
   device.vertex = true;
 
@@ -37,7 +44,7 @@ export function createDevice(data = {}) {
         attrUnitWidth,
         cellHeight
       ),
-      "shape=rect;fillColor=#ffffff;constituent=1;"
+      "shape=rect;fillColor=#fff2cc;constituent=1;"
     );
     attrDevice.vertex = true;
     device.insert(attrDevice);
@@ -60,7 +67,7 @@ export function createPlaceCabinet(data) {
   const placeCabinet = new mxCell(
     node,
     new mxGeometry(coord.x, coord.y, cabinetWidth, cabinetHeight),
-    "shape=mxgraph.cabinetLayout.placeCabinet;"
+    "shape=mxgraph.cabinetLayout.placeCabinet;;resizable=0;"
   );
   placeCabinet.vertex = true;
   return placeCabinet;
@@ -72,7 +79,7 @@ export function createCabinet(data) {
   const placeCabinet = new mxCell(
     node,
     new mxGeometry(0, 0, cabinetWidth, cabinetHeight),
-    "shape=mxgraph.cabinetLayout.cabinet;"
+    "shape=mxgraph.cabinetLayout.cabinet;resizable=0;"
   );
   placeCabinet.vertex = true;
   return placeCabinet;
@@ -95,3 +102,35 @@ export function getCabinetNewCoord(x, y) {
     y: newY,
   };
 }
+
+// 改写机柜高亮样式
+const originCellHighlight = mxCellHighlight.prototype.createShape;
+mxCellHighlight.prototype.createShape = function () {
+  let shape;
+  if (this.state.style.shape === "mxgraph.cabinetLayout.cabinet") {
+    shape = new mxRectangleShape();
+    shape.svgStrokeTolerance = this.graph.tolerance;
+    shape.points = this.state.absolutePoints;
+    shape.apply(this.state);
+    shape.stroke = this.highlightColor;
+    shape.opacity = this.opacity;
+    shape.isDashed = this.dashed;
+    shape.isShadow = false;
+
+    shape.dialect =
+      this.graph.dialect != mxConstants.DIALECT_SVG
+        ? mxConstants.DIALECT_VML
+        : mxConstants.DIALECT_SVG;
+    shape.init(this.graph.getView().getOverlayPane());
+    mxEvent.redirectMouseEvents(shape.node, this.graph, this.state);
+
+    if (this.graph.dialect != mxConstants.DIALECT_SVG) {
+      shape.pointerEvents = false;
+    } else {
+      shape.svgPointerEvents = "stroke";
+    }
+  } else {
+    shape = originCellHighlight.apply(this, arguments);
+  }
+  return shape;
+};

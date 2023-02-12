@@ -1,10 +1,15 @@
 <template>
-  <div class="w-shape-item" ref="shapeRef"></div>
+  <div
+    class="w-shape-item"
+    ref="shapeRef"
+    @mouseenter="emit('mouseenter', imageInfo)"
+    @mouseleave="emit('mouseleave', imageInfo)"
+  ></div>
 </template>
 
 <script setup>
 import mxgraph, { getGraph, getTemporaryGraph } from "@/mxgraph";
-import { defineProps, onMounted, ref, computed } from "vue";
+import { defineProps, onMounted, ref, reactive, defineEmits } from "vue";
 import { toBase64 } from "js-base64";
 import {
   initPlaceCabinet,
@@ -16,9 +21,11 @@ import {
   cabinet,
   deviceUnit,
 } from "@/compositions/cabinet.js";
+
 const { mxUtils, mxEvent, mxDragSource, mxCell, mxGeometry } = mxgraph;
 const shapeRef = ref();
-
+const imageInfo = ref({});
+const emit = defineEmits(["mouseenter", "mouseleave"]);
 const props = defineProps({
   width: {
     type: Number,
@@ -48,9 +55,16 @@ const createPreview = function () {
   dragElt.style.width = width + "px";
   dragElt.style.height = height + "px";
   const svg = createShapeSvg(width, height);
+
   const image = createShapeImage(svg);
   image.style.height = "100%";
   image.style.width = "100%";
+  imageInfo.value = {
+    src: image.src,
+    height,
+    width,
+  };
+
   dragElt.appendChild(image);
 
   return dragElt;
@@ -191,5 +205,8 @@ onMounted(() => {
   width: 60px;
   height: 40px;
   margin: 5px;
+  &:hover {
+    background-color: #e0e0e0;
+  }
 }
 </style>
