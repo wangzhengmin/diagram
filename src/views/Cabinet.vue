@@ -28,13 +28,19 @@ import {
   createPlaceCabinet,
 } from "../mxgraph/shapes/cabinetLayout";
 
-const { mxCell, mxGeometry, mxUtils, mxGraph, mxLayoutManager, mxGraphLayout } =
-  mxgraph;
+const {
+  mxCell,
+  mxGraphHandler,
+  mxGeometry,
+  mxUtils,
+  mxGraph,
+  mxLayoutManager,
+  mxGraphLayout,
+} = mxgraph;
 
 let shapes = shallowRef([]);
 const initCabinetLayout = () => {
   const graph = getGraph();
-  console.log(new mxGraphLayout(graph));
 
   let layoutManager = new mxLayoutManager(graph);
   const cabinetLayout = new mxGraphLayout(graph);
@@ -46,6 +52,18 @@ const initCabinetLayout = () => {
       return cabinetLayout;
     }
     return;
+  };
+
+  graph.isPart = function (cell) {
+    return this.getCurrentCellStyle(cell)["constituent"] == "1";
+  };
+
+  graph.selectCellForEvent = function (cell) {
+    if (this.isPart(cell)) {
+      cell = this.model.getParent(cell);
+    }
+
+    mxGraph.prototype.selectCellForEvent.apply(this, [cell]);
   };
 
   graph.isValidDropTarget = function (target, cells, evt) {
@@ -106,7 +124,6 @@ const initCabinetLayout = () => {
         isDevice(cellStyle) &&
         isCabinet(this.getCellStyle(target))
       ) {
-        console.log(firstCell);
         // 不要使用geometry方法不然获取到的不是未移动前坐标
         const deviceGeo = firstCell.geometry;
         const cabinetGeo = target.geometry;
@@ -116,7 +133,6 @@ const initCabinetLayout = () => {
         const newX = cabinetGeo.x;
         dx = newX - deviceGeo.x;
         dy = newY - deviceGeo.y;
-        console.log(dx, dy);
         originGraphMoveCells.apply(this, [
           cells,
           dx,
@@ -144,7 +160,7 @@ const loadShapes = () => {
   createTemporaryGraph();
 
   const cabinet = createCabinet();
-  const device = createDevice();
+  const device = createDevice({ weight: 22, power: 33 });
   const placeCabinet = createPlaceCabinet();
   shapes.value = [[cabinet], [device], [placeCabinet]];
 };

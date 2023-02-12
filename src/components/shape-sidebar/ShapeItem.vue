@@ -85,6 +85,7 @@ const createShapeSvg = function (width, height) {
   node.style.minHeight = "";
   node.setAttribute("version", 1.1);
   node.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  node.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
   // 拖拽时文字不可见
   let texts = node.querySelectorAll("foreignObject");

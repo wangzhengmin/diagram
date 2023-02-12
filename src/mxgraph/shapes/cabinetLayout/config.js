@@ -2,10 +2,12 @@ export const attrs = [
   {
     title: "重量",
     unit: "kg",
+    prop: "weight",
   },
   {
-    title: "重量",
-    unit: "kg",
+    title: "功耗",
+    unit: "w",
+    prop: "power",
   },
 ];
 

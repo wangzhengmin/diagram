@@ -111,8 +111,14 @@ graph.allowAutoPanning = true;
   ```
 
 - `graph.isValidDropTarget` 是否是有效的放置目标，如果是会组合在一起
+
 - `graph.moveCells` 移动指定的单元格
+
 - `graph.getCellStyle` 获取指定目标的样式
+
+- `graph.selectCellForEvent` 选中事件，可以使元素的组成部分不可选中
+
+  http://jgraph.github.io/mxgraph/javascript/examples/constituent.html
 
 ## 事件
 

@@ -9,11 +9,15 @@ import {
   cabinetHeight,
   cellHeight,
   attrWidth,
+  attrs,
+  titleWidth,
+  unitWidth,
+  attrUnitWidth,
 } from "./config";
 console.log(cabinetWidth, cabinetHeight);
 const { mxUtils, mxCell, mxGeometry } = mxgraph;
 
-export function createDevice(data) {
+export function createDevice(data = {}) {
   var doc = mxUtils.createXmlDocument();
   var node = doc.createElement("设备");
   const device = new mxCell(
@@ -22,6 +26,23 @@ export function createDevice(data) {
     "shape=mxgraph.cabinetLayout.device;"
   );
   device.vertex = true;
+
+  for (let i = 0; i < attrs.length; i++) {
+    const attr = attrs[i];
+    const attrDevice = new mxCell(
+      data[attr.prop],
+      new mxGeometry(
+        titleWidth + unitWidth + i * attrUnitWidth,
+        0,
+        attrUnitWidth,
+        cellHeight
+      ),
+      "shape=rect;fillColor=#ffffff;constituent=1;"
+    );
+    attrDevice.vertex = true;
+    device.insert(attrDevice);
+  }
+
   return device;
 }
 
