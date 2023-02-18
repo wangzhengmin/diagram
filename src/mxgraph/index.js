@@ -1,4 +1,5 @@
 import mx from "mxgraph";
+import initMxEvent from "./core/mxEventExtend";
 const mxgraph = mx({
   mxImageBasePath: "../src/images",
   mxBasePath: "./mxgraph",
@@ -75,4 +76,9 @@ export const getTemporaryGraph = () => {
 
 export const getGraph = () => graph;
 
+setTimeout(() => {
+  initMxEvent();
+});
+
 export default mxgraph;
+// initMxEvent(mxEvent);
