@@ -1,4 +1,5 @@
 import mx from "mxgraph";
+import initDefaultStyle from "./core/defaultStyle";
 import initMxEvent from "./core/mxEventExtend";
 const mxgraph = mx({
   mxImageBasePath: "../src/images",
@@ -88,6 +89,8 @@ export const getGraph = () => graph;
 setTimeout(() => {
   initMxEvent();
 });
+
+initDefaultStyle(mxgraph);
 
 export default mxgraph;
 // initMxEvent(mxEvent);
