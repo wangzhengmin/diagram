@@ -226,11 +226,10 @@ export function updateDevcieById(id, data) {
 
 export function updateCabinetById(id, data) {
   let cabinetData = cabinet.list.find((item) => item.id === id);
-  if(cabinetData) {
+  if (cabinetData) {
     cabinetData.x = data.x;
-    cabinetData.y = data.y
+    cabinetData.y = data.y;
   } else {
-    console.log(id,data,cabinet.list)
+    console.log(id, data, cabinet.list);
   }
-
 }

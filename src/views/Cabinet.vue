@@ -74,14 +74,15 @@ const initCabinetLayout = () => {
       cell = this.model.getParent(cell);
     }
 
+    // 将移动cell 放置最上面，一定要异步，也不能放 addMouseListener 中的moueDown事件中不然双击文本不能编辑
+    setTimeout(() => {
+      this.orderCells(false, [cell]);
+    });
     mxGraph.prototype.selectCellForEvent.apply(this, [cell]);
   };
 
   graph.addMouseListener({
-    mouseDown: mxUtils.bind(graph, function (sender, me) {
-      const cells = this.graphHandler.cells;
-      this.orderCells(false, cells);
-    }),
+    mouseDown: mxUtils.bind(graph, function (sender, me) {}),
     mouseMove: mxUtils.bind(graph, function (sender, me) {
       const cells = this.graphHandler.cells;
       if (this.isMouseDown && cells) {
